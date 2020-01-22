@@ -1,0 +1,63 @@
+{
+    "IsHouse": true,
+    "houseList": [
+        {
+            "Zipcode": "07698",
+            "Area": "2000Sqft",
+            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
+            "AgeInYears": 10,
+            "NumberOfBedrooms": 4,
+            "Cost": 500000.0,
+            "quoteDetails": {
+                "HouseCost": 2500000.0,
+                "IsPreapproved": true,
+                "RateofInterest": "2.40"
+            }
+        },
+        {
+            "Zipcode": "07698",
+            "Area": "2000Sqft",
+            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
+            "AgeInYears": 10,
+            "NumberOfBedrooms": 4,
+            "Cost": 500000.0,
+            "quoteDetails": {
+                "HouseCost": 2500000.0,
+                "IsPreapproved": true,
+                "RateofInterest": "2.40"
+            }
+        },
+        {
+            "Zipcode": "07698",
+            "Area": "2000Sqft",
+            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
+            "AgeInYears": 10,
+            "NumberOfBedrooms": 4,
+            "Cost": 500000.0,
+            "quoteDetails": {
+                "HouseCost": 2500000.0,
+                "IsPreapproved": true,
+                "RateofInterest": "2.40"
+            }
+        },
+        {
+            "Zipcode": "07698",
+            "Area": "2000Sqft",
+            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
+            "AgeInYears": 10,
+            "NumberOfBedrooms": 4,
+            "Cost": 500000.0,
+            "quoteDetails": {
+                "HouseCost": 2500000.0,
+                "IsPreapproved": true,
+                "RateofInterest": "2.40"
+            }
+        }
+    ],
+    "accotDetails": {
+        "office": "474",
+        "AccountNumber": "345654",
+        "FA": "478",
+        "KeyACcount": "2019-12-01:478.78.47"
+    }
+}
