@@ -3,49 +3,12 @@
     "houseList": [
         {
             "Zipcode": "07698",
+            "Address": "23 Cottage way , Fanwood , NJ 07023",
             "Area": "2000Sqft",
-            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
+            "contrustiedIn": "1940-01-22T22:02:45.3044963+00:00",
             "AgeInYears": 10,
             "NumberOfBedrooms": 4,
-            "Cost": 500000.0,
-            "quoteDetails": {
-                "HouseCost": 2500000.0,
-                "IsPreapproved": true,
-                "RateofInterest": "2.40"
-            }
-        },
-        {
-            "Zipcode": "07698",
-            "Area": "2000Sqft",
-            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
-            "AgeInYears": 10,
-            "NumberOfBedrooms": 4,
-            "Cost": 500000.0,
-            "quoteDetails": {
-                "HouseCost": 2500000.0,
-                "IsPreapproved": true,
-                "RateofInterest": "2.40"
-            }
-        },
-        {
-            "Zipcode": "07698",
-            "Area": "2000Sqft",
-            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
-            "AgeInYears": 10,
-            "NumberOfBedrooms": 4,
-            "Cost": 500000.0,
-            "quoteDetails": {
-                "HouseCost": 2500000.0,
-                "IsPreapproved": true,
-                "RateofInterest": "2.40"
-            }
-        },
-        {
-            "Zipcode": "07698",
-            "Area": "2000Sqft",
-            "contrustiedIn": "1940-01-22T21:55:13.3671578+00:00",
-            "AgeInYears": 10,
-            "NumberOfBedrooms": 4,
+            "NumberOfBathooms": 3,
             "Cost": 500000.0,
             "quoteDetails": {
                 "HouseCost": 2500000.0,
