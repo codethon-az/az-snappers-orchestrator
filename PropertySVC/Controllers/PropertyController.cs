@@ -33,11 +33,20 @@ namespace PropertySVC.Controllers
             return objPrpertyListRes;
         }
 
-        // GET: api/Property/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        // GET: api/Property/5/userid
+        //[HttpGet("{id}", Name = "Get")]
+        [Route("{userid:int}/{imageurl:string}")]
+        public string Get(int userid, string imageurl)
         {
-            return "value";
+            // get all images from DB
+            // verify if the image is a house
+            // send query image and all DB images to ML model
+            // get property from return image url
+            // get user details
+            // send user and property details to mortgage service
+            // send user, property and mortgage details back to UI
+
+            return "value" + userid;
         }
 
 
@@ -47,7 +56,7 @@ namespace PropertySVC.Controllers
         {
 
             
-                         QuoteResponse response = new QuoteResponse() { HouseCost = 2500000, IsPreapproved = true, RateofInterest = "2.40" };
+            QuoteResponse response = new QuoteResponse() { HouseCost = 2500000, IsPreapproved = true, RateofInterest = "2.40" };
             House house = new House() { AgeInYears = 10, Area = "2000Sqft", contrustiedIn = DateTime.Now.AddYears(-80), Cost = 500000, NumberOfBedrooms = 4, Zipcode = "07698",quoteDetails= response };
             List<House> houses = new List<House>();
             houses.Add(house);
