@@ -40,25 +40,6 @@ namespace PropertySVC.Controllers
             return "value";
         }
 
-        // POST: api/Property
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT: api/Property/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
-
-
 
         // GET: api/Property/Listing
         [HttpGet("{id}", Name = "Listing")]
