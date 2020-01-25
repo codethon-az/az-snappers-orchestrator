@@ -2,6 +2,7 @@ using System;
 
 namespace PropertySVC
 {
+    [Obsolete]
     public class PropertySearch
     {
         public DateTime Date { get; set; }
