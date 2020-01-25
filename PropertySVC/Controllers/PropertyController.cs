@@ -64,10 +64,39 @@ namespace PropertySVC.Controllers
                 }
                 response.isHouse = verifyImg.is_house;
             }
+            // get user details
+            using (var sqlConn = new SqlConnection(DB_CONN))
+            {
+                sqlConn.Open();
+                var query = $"SELECT * from [dbo].[UserProfile] where username='{username}'";
+                using (SqlCommand cmd = new SqlCommand(query, sqlConn))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            response.user = new Core.UserProfile
+                            {
+                                userId = reader.GetInt32(0).ToString(),
+                                username = reader.GetString(1),
+                                firstName = reader.GetString(3),
+                                lastName = reader.GetString(4),
+                                middleName = reader.GetString(5),
+                                creditScore = reader.GetInt32(6),
+                                aum = reader.GetInt32(7),
+                                relationshipAge = reader.GetInt32(8),
+                                phone = reader.GetString(9),
+                                emailAddress = reader.GetString(10),
+                                accountNumber = reader.GetString(11)
+                            };
+                        }
+                    }
+                }
+            }
             // send query image and all DB images to ML model
             if (!verifyImg.is_house)
             {
-                return JsonConvert.SerializeObject(verifyImg);
+                return JsonConvert.SerializeObject(response);
             }
             SearchImageResponse imgSearchResponse;
             using (var httpClient = new HttpClient())
@@ -115,35 +144,6 @@ namespace PropertySVC.Controllers
                                 zip = reader.GetString(5),
                                 propertyId = reader.GetInt32(0).ToString()
                             });
-                        }
-                    }
-                }
-            }
-            // get user details
-            using (var sqlConn = new SqlConnection(DB_CONN))
-            {
-                sqlConn.Open();
-                var query = $"SELECT * from [dbo].[UserProfile] where username='{username}'";
-                using (SqlCommand cmd = new SqlCommand(query, sqlConn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            response.user = new Core.UserProfile
-                            {
-                                userId = reader.GetInt32(0).ToString(),
-                                username = reader.GetString(1),
-                                firstName = reader.GetString(3),
-                                lastName = reader.GetString(4),
-                                middleName = reader.GetString(5),
-                                creditScore = reader.GetInt32(6),
-                                aum = reader.GetInt32(7),
-                                relationshipAge = reader.GetInt32(8),
-                                phone = reader.GetString(9),
-                                emailAddress = reader.GetString(10),
-                                accountNumber = reader.GetString(11)
-                            };
                         }
                     }
                 }
