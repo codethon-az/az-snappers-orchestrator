@@ -20,25 +20,10 @@ namespace PropertySVC.Controllers
         private const string DB_CONN = "Server=tcp:az-snappers-db-server.database.windows.net,1433;Initial Catalog=az-snappers-db;Persist Security Info=False;User ID=az-snappers;Password=@ugm3ntedRealt0rs;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
         private const string ML_API = "https://wklyhttptrigger.azurewebsites.net/api/VisionHttpTrigger";
         private const string MTG_API = "https://az-snappers-mortgages.azurewebsites.net/api/quote";
-        // GET: api/Property
         [HttpGet]
-        public PrpertyListRes Get()
+        public string Get()
         {
-
-            QuoteResponse response = new QuoteResponse() { HouseCost = 2500000, IsPreapproved = true, RateofInterest = "2.40" };
-            House house = new House() { AgeInYears = 10, Area = "2000Sqft", contrustiedIn = DateTime.Now.AddYears(-80), Cost = 500000, NumberOfBedrooms = 4, Zipcode = "07698",NumberOfBathooms=3,Address="23 Cottage way , Fanwood , NJ 07023" ,quoteDetails = response };
-            house.quoteDetails =new QuoteResponse();
-            house.quoteDetails = response;
-            List<House> houses = new List<House>();
-            houses.Add(house);
-            //houses.Add(house);
-            //houses.Add(house);
-            //houses.Add(house);
-            Account acc = new Account() { AccountNumber = "345654", KeyACcount = "2019-12-01:478.78.47", FA = "478", office = "474" };
-            PrpertyListRes objPrpertyListRes = new PrpertyListRes() { accotDetails = acc, houseList = houses, IsHouse = true };
-            var jsonresponse = Newtonsoft.Json.JsonConvert.SerializeObject(objPrpertyListRes);
-            // return new string[] { jsonresponse };
-            return objPrpertyListRes;
+            return "Orchestrator service is healthy";
         }
 
         // GET: api/Property/5/userid
