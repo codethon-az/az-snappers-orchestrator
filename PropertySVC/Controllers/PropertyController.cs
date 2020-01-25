@@ -132,17 +132,17 @@ namespace PropertySVC.Controllers
                         {
                             response.user = new Core.UserProfile
                             {
-                                UserId = reader.GetInt32(0).ToString(),
-                                Username = reader.GetString(1),
-                                FirstName = reader.GetString(3),
-                                LastName = reader.GetString(4),
-                                MiddleName = reader.GetString(5),
-                                CreditScore = reader.GetInt32(6),
-                                AUM = reader.GetInt32(7),
-                                RelationshipAge = reader.GetInt32(8),
-                                Phone = reader.GetString(9),
-                                EmailAddress = reader.GetString(10),
-                                AccountNumber = reader.GetString(11)
+                                userId = reader.GetInt32(0).ToString(),
+                                username = reader.GetString(1),
+                                firstName = reader.GetString(3),
+                                lastName = reader.GetString(4),
+                                middleName = reader.GetString(5),
+                                creditScore = reader.GetInt32(6),
+                                aum = reader.GetInt32(7),
+                                relationshipAge = reader.GetInt32(8),
+                                phone = reader.GetString(9),
+                                emailAddress = reader.GetString(10),
+                                accountNumber = reader.GetString(11)
                             };
                         }
                     }
@@ -151,10 +151,10 @@ namespace PropertySVC.Controllers
             // send user and property details to mortgage service
             var mtgReq = new MortgageQuoteRequest();
             mtgReq.AccountDetails = new AccountDetails { 
-                AccountNumber = response.user.AccountNumber, 
-                AUM = response.user.AUM.ToString(), 
-                Tenure = response.user.RelationshipAge, 
-                UserId = response.user.UserId 
+                AccountNumber = response.user.accountNumber, 
+                AUM = response.user.aum.ToString(), 
+                Tenure = response.user.relationshipAge, 
+                UserId = response.user.userId 
             };
             var age = new Random().Next(5, 50);
             mtgReq.PropertyDetails = new PropertyDetails
@@ -184,7 +184,7 @@ namespace PropertySVC.Controllers
                         {
                             mtgResponse = new MortgageQuoteResponse { 
                                 AccountNumber = mtgReq.AccountDetails.AccountNumber, 
-                                UserId = response.user.UserId,
+                                UserId = response.user.userId,
                                 IsPreApproved = false,
                                 PropertyId = mtgReq.PropertyDetails.PropertyId,
                                 DownPayment = 0,

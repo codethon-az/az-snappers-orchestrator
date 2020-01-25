@@ -12,7 +12,6 @@ namespace PropertySVC
         public bool propertyFound { get; set; }
         public bool quoteFound { get; set; }
         public List<Property> propertyList { get; set; }
-        public string accountNumber { get; set; }
         public UserProfile user { get; set; }
 
         public Response()
