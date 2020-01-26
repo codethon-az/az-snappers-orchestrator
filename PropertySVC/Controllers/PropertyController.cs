@@ -113,8 +113,13 @@ namespace PropertySVC.Controllers
                         }
                         else
                         {
-                            imgSearchResponse = new SearchImageResponse { image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
-                            imgSearchResponse = new SearchImageResponse { image_url = "https://azsnappersblob.blob.core.windows.net/images/07722-01.01.PNG", message = "Property not found" };
+                            var p = new Random().Next(0, 65);
+                            if (p == 0)
+                                imgSearchResponse = new SearchImageResponse { image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
+                            else
+                            {
+                                imgSearchResponse = new SearchImageResponse { image_url = imgSearchReq.comp_image_urls[p-1], message = "Randomly chosen house image" };
+                            }
                             response.propertyFound = false;
                         }
                     }
