@@ -35,14 +35,19 @@ namespace PropertySVC
         public string tax { get; set; }
         public QuoteDetails quoteDetails { get; set; }
         public NeighborhoodDetails neighborhoodDetails { get; set; }
+        public Property()
+        {
+            quoteDetails = new QuoteDetails();
+            neighborhoodDetails = new NeighborhoodDetails();
+        }
     }
 
     public class QuoteDetails
     {
         public bool isPreApproved { get; set; }
-        public float rateOfInterest { get; set; }
-        public float downPayment { get; set; }
-        public float monthlyPayment { get; set; }
+        public string rateOfInterest { get; set; }
+        public decimal downPayment { get; set; }
+        public decimal monthlyPayment { get; set; }
     }
 
     public class NeighborhoodDetails

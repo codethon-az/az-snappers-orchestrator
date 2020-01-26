@@ -198,6 +198,10 @@ namespace PropertySVC.Controllers
                             };
                             response.quoteFound = false;
                         }
+                        response.propertyList[0].quoteDetails.downPayment = mtgResponse.DownPayment;
+                        response.propertyList[0].quoteDetails.isPreApproved = mtgResponse.IsPreApproved;
+                        response.propertyList[0].quoteDetails.monthlyPayment = mtgResponse.MonthlyEMI;
+                        response.propertyList[0].quoteDetails.rateOfInterest = mtgResponse.RateofInterest;
                     }
                 }
             }
