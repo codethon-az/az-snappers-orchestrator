@@ -13,10 +13,13 @@ namespace PropertySVC
         public bool quoteFound { get; set; }
         public List<Property> propertyList { get; set; }
         public UserProfile user { get; set; }
+        public List<string> milestones { get; set; }
 
         public Response()
         {
             propertyList = new List<Property>();
+            milestones = new List<string>();
+            user = new UserProfile();
         }
 
     }

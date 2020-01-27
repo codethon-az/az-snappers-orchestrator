@@ -46,6 +46,7 @@ namespace PropertySVC.Controllers
                 _logger.LogInformation($"Getting property details for {username} for image url {HttpContext.Request.Query["image"]}");
                 var imgSearchReq = new SearchImageRequest { org_image_url = HttpContext.Request.Query["image"] };
                 var response = new Response();
+                response.milestones.Add("Getting property details");
 
                 try
                 {
@@ -66,9 +67,11 @@ namespace PropertySVC.Controllers
                         }
                     }
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {imgSearchReq.comp_image_urls.Count} images from DB");
+                    response.milestones.Add("Retrieved images from DB");
                 }
                 catch(Exception ex)
                 {
+                    response.milestones.Add($"Error getting details from DB: {ex.Message}");
                     return $"Error getting all images from DB: {ex.Message}";
                 }
 
@@ -76,6 +79,7 @@ namespace PropertySVC.Controllers
                 try
                 {
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: verify if the image is a house");
+                    response.milestones.Add("Verifying image");
                     using (var httpClient = new HttpClient())
                     {
                         _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API}/? image_url={imgSearchReq.org_image_url}");
@@ -88,18 +92,21 @@ namespace PropertySVC.Controllers
                                 _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
                                 verifyImg = JsonConvert.DeserializeObject<VerifyImage>(apiResponse);
                                 _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {string.Join(';', verifyImg.tags.ToArray())}");
+                                response.milestones.Add("It is a house");
                             }
                             else
                             {
                                 _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is not a house");
                                 verifyImg = new VerifyImage { is_house = false };
                                 _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is {string.Join(';', verifyImg.tags.ToArray())}");
+                                response.milestones.Add("It is not a house");
                             }
                         }
                         response.isHouse = verifyImg.is_house;
                     }
 
                     _logger.LogInformation("ORCHESTRATOR SERVICE: get user details from DB");
+                    response.milestones.Add("Getting User details from DB");
                     using (var sqlConn = new SqlConnection(DB_CONN))
                     {
                         sqlConn.Open();
@@ -129,6 +136,7 @@ namespace PropertySVC.Controllers
                         }
                     }
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {JsonConvert.SerializeObject(response.user)}  from DB");
+                    response.milestones.Add("Got User details from DB");
                 }
                 catch (Exception ex)
                 {
@@ -145,6 +153,7 @@ namespace PropertySVC.Controllers
                 try
                 {
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: send query image and all DB images to ML model");
+                    response.milestones.Add("calling vision service");
                     using (var httpClient = new HttpClient())
                     {
                         var httpContent = new StringContent(JsonConvert.SerializeObject(imgSearchReq), Encoding.UTF8, "application/json");
@@ -160,12 +169,14 @@ namespace PropertySVC.Controllers
                                     imgSearchResponse = JsonConvert.DeserializeObject<SearchImageResponse>(apiResponse);
                                     response.propertyFound = true;
                                     _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {imgSearchResponse.comp_image_url} and {imgSearchResponse.message}");
+                                    response.milestones.Add("Property was found");
                                 }
                                 else
                                 {
                                     response.propertyFound = false;
                                     imgSearchResponse = new SearchImageResponse { comp_image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
                                     _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... returning property not found image");
+                                    response.milestones.Add("Property was not found");
                                     //    var p = new Random().Next(0, 65);
                                     //_logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... picking a random image {p}");
                                     //if (p == 0)
@@ -191,6 +202,7 @@ namespace PropertySVC.Controllers
                 try
                 {
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: get property from return image url");
+                    response.milestones.Add("Getting property details from DB");
                     using (var sqlConn = new SqlConnection(DB_CONN))
                     {
                         sqlConn.Open();
@@ -225,6 +237,7 @@ namespace PropertySVC.Controllers
                         }
                     }
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved property details from DB --- {JsonConvert.SerializeObject(response.propertyList)}");
+                    response.milestones.Add("Got property details from DB");
 
                     mtgReq.AccountDetails = new AccountDetails
                     {
@@ -252,47 +265,49 @@ namespace PropertySVC.Controllers
                     return $"Error getting selected property from DB: {ex.Message}";
                 }
 
-
-                try { 
-                MortgageQuoteResponse mtgResponse;
-                using (var httpClient = new HttpClient())
+                response.milestones.Add("Getting quote from Mortgage service");
+                try
                 {
-                    var httpContent = new StringContent(JsonConvert.SerializeObject(mtgReq), Encoding.UTF8, "application/json");
+                    MortgageQuoteResponse mtgResponse;
+                    using (var httpClient = new HttpClient())
                     {
-                        _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {MTG_API} using {httpContent}");
-                        using (var res = httpClient.PostAsync(MTG_API, httpContent))
+                        var httpContent = new StringContent(JsonConvert.SerializeObject(mtgReq), Encoding.UTF8, "application/json");
                         {
-                            var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {MTG_API} for mortgage saearch ---- {res.Result.StatusCode}");
-                            if (res.Result.IsSuccessStatusCode)
+                            _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {MTG_API} using {httpContent}");
+                            using (var res = httpClient.PostAsync(MTG_API, httpContent))
                             {
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
-                                mtgResponse = JsonConvert.DeserializeObject<MortgageQuoteResponse>(apiResponse);
-                                response.quoteFound = true;
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {JsonConvert.SerializeObject(mtgResponse)}");
-                            }
-                            else
-                            {
-                                mtgResponse = new MortgageQuoteResponse
+                                var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {MTG_API} for mortgage saearch ---- {res.Result.StatusCode}");
+                                if (res.Result.IsSuccessStatusCode)
                                 {
-                                    AccountNumber = mtgReq.AccountDetails.AccountNumber,
-                                    UserId = response.user.userId,
-                                    IsPreApproved = false,
-                                    PropertyId = mtgReq.PropertyDetails.PropertyId,
-                                    DownPayment = 0,
-                                    MonthlyEMI = 0,
-                                    RateofInterest = "0"
-                                };
-                                response.quoteFound = false;
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... setting default dummy response {JsonConvert.SerializeObject(mtgResponse)}");
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
+                                    mtgResponse = JsonConvert.DeserializeObject<MortgageQuoteResponse>(apiResponse);
+                                    response.quoteFound = true;
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {JsonConvert.SerializeObject(mtgResponse)}");
+                                }
+                                else
+                                {
+                                    mtgResponse = new MortgageQuoteResponse
+                                    {
+                                        AccountNumber = mtgReq.AccountDetails.AccountNumber,
+                                        UserId = response.user.userId,
+                                        IsPreApproved = false,
+                                        PropertyId = mtgReq.PropertyDetails.PropertyId,
+                                        DownPayment = 0,
+                                        MonthlyEMI = 0,
+                                        RateofInterest = "0"
+                                    };
+                                    response.quoteFound = false;
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... setting default dummy response {JsonConvert.SerializeObject(mtgResponse)}");
+                                }
+                                response.propertyList[0].quoteDetails.downPayment = mtgResponse.DownPayment;
+                                response.propertyList[0].quoteDetails.isPreApproved = mtgResponse.IsPreApproved;
+                                response.propertyList[0].quoteDetails.monthlyPayment = mtgResponse.MonthlyEMI;
+                                response.propertyList[0].quoteDetails.rateOfInterest = mtgResponse.RateofInterest;
                             }
-                            response.propertyList[0].quoteDetails.downPayment = mtgResponse.DownPayment;
-                            response.propertyList[0].quoteDetails.isPreApproved = mtgResponse.IsPreApproved;
-                            response.propertyList[0].quoteDetails.monthlyPayment = mtgResponse.MonthlyEMI;
-                            response.propertyList[0].quoteDetails.rateOfInterest = mtgResponse.RateofInterest;
                         }
                     }
-                    }
+                    response.milestones.Add("Got quote from Mortgage service");
                 }
                 catch (Exception ex)
                 {
@@ -300,6 +315,7 @@ namespace PropertySVC.Controllers
                 }
 
                 _logger.LogInformation($"ORCHESTRATOR SERVICE: send user, property and mortgage details back to UI {JsonConvert.SerializeObject(response)}");
+                response.milestones.Add("Sending full response back");
                 return JsonConvert.SerializeObject(response);
             }
             catch(Exception exc)
