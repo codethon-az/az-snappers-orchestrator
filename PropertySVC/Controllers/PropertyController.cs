@@ -140,10 +140,10 @@ namespace PropertySVC.Controllers
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: returning early since the image is not a house");
                     return JsonConvert.SerializeObject(response);
                 }
+                SearchImageResponse imgSearchResponse;
 
                 try { 
                 _logger.LogInformation($"ORCHESTRATOR SERVICE: send query image and all DB images to ML model");
-                SearchImageResponse imgSearchResponse;
                 using (var httpClient = new HttpClient())
                 {
                     var httpContent = new StringContent(JsonConvert.SerializeObject(imgSearchReq), Encoding.UTF8, "application/json");
@@ -184,6 +184,7 @@ namespace PropertySVC.Controllers
                     return $"Error matching image from vision service: {ex.Message}";
                 }
 
+                var mtgReq = new MortgageQuoteRequest();
                 try
                 {
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: get property from return image url");
@@ -216,7 +217,6 @@ namespace PropertySVC.Controllers
                     }
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved property details from DB --- {JsonConvert.SerializeObject(response.propertyList)}");
 
-                    var mtgReq = new MortgageQuoteRequest();
                     mtgReq.AccountDetails = new AccountDetails
                     {
                         AccountNumber = response.user.accountNumber,
