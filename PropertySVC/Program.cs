@@ -21,6 +21,15 @@ namespace PropertySVC
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.ConfigureLogging(logging =>
+                    {
+                        logging.ClearProviders();
+
+                        logging.AddDebug();
+                        logging.AddEventLog();
+                        logging.AddEventSourceLogger();
+                        logging.AddConsole();
+                    });
                 });
     }
 }
