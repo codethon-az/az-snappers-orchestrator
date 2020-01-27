@@ -194,7 +194,7 @@ namespace PropertySVC.Controllers
                     using (var sqlConn = new SqlConnection(DB_CONN))
                     {
                         sqlConn.Open();
-                        var query = $"select top P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.comp_image_url}'";
+                        var query = $"select P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.comp_image_url}'";
                         using (SqlCommand cmd = new SqlCommand(query, sqlConn))
                         {
                             using (var reader = cmd.ExecuteReader())
