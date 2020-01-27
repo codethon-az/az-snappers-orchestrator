@@ -24,6 +24,7 @@ namespace PropertySVC
     public class Property
     {
         public string imageUrl { get; set; }
+        public List<string> moreImages { get; set; }
         public string zip;
         public string propertyId;
         public string address { get; set; }
@@ -39,6 +40,7 @@ namespace PropertySVC
         {
             quoteDetails = new QuoteDetails();
             neighborhoodDetails = new NeighborhoodDetails();
+            moreImages = new List<string>();
         }
     }
 

@@ -194,26 +194,32 @@ namespace PropertySVC.Controllers
                     using (var sqlConn = new SqlConnection(DB_CONN))
                     {
                         sqlConn.Open();
-                        var query = $"select top 1 P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.comp_image_url}'";
+                        var query = $"select top P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.comp_image_url}'";
                         using (SqlCommand cmd = new SqlCommand(query, sqlConn))
                         {
                             using (var reader = cmd.ExecuteReader())
                             {
+                                var added = false;
                                 while (reader.Read())
                                 {
-                                    response.propertyList.Add(new Property
+                                    if (!added)
                                     {
-                                        imageUrl = reader.GetString(16),
-                                        address = $"{reader.GetString(1)}, {reader.GetString(3)}, {reader.GetString(4)} {reader.GetString(5)}",
-                                        area = reader.GetDouble(14).ToString(),
-                                        numberOfBedrooms = reader.GetInt32(7),
-                                        numberOfBathrooms = reader.GetInt32(8),
-                                        cost = reader.GetDouble(13).ToString(),
-                                        status = reader.GetString(12),
-                                        tax = reader.GetDouble(15).ToString(),
-                                        zip = reader.GetString(5),
-                                        propertyId = reader.GetInt32(0).ToString()
-                                    });
+                                        added = true;
+                                        response.propertyList.Add(new Property
+                                        {
+                                            imageUrl = reader.GetString(16),
+                                            address = $"{reader.GetString(1)}, {reader.GetString(3)}, {reader.GetString(4)} {reader.GetString(5)}",
+                                            area = reader.GetDouble(14).ToString(),
+                                            numberOfBedrooms = reader.GetInt32(7),
+                                            numberOfBathrooms = reader.GetInt32(8),
+                                            cost = reader.GetDouble(13).ToString(),
+                                            status = reader.GetString(12),
+                                            tax = reader.GetDouble(15).ToString(),
+                                            zip = reader.GetString(5),
+                                            propertyId = reader.GetInt32(0).ToString()
+                                        });
+                                    }
+                                    response.propertyList[0].moreImages.Add(reader.GetString(16));
                                 }
                             }
                         }
