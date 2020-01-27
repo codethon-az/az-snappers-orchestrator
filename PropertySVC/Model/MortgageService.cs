@@ -15,8 +15,8 @@ namespace PropertySVC.Model
     {
         public string AccountNumber { get; set; }
         public string UserId { get; set; }
-        public string AUM { get; set; }
-        public int Tenure { get; set; }
+        public decimal AUM { get; set; }
+        public string Tenure { get; set; }
     }
 
     public class PropertyDetails
@@ -26,7 +26,7 @@ namespace PropertySVC.Model
         public DateTime contrustedIn { get; set; }
         public int AgeInYears { get; set; }
         public int NumberOfBedrooms { get; set; }
-        public string Cost { get; set; }
+        public decimal Cost { get; set; }
         public string PropertyId { get; set; }
     }
 

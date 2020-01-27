@@ -242,8 +242,8 @@ namespace PropertySVC.Controllers
                     mtgReq.AccountDetails = new AccountDetails
                     {
                         AccountNumber = response.user.accountNumber,
-                        AUM = response.user.aum.ToString(),
-                        Tenure = response.user.relationshipAge,
+                        AUM = decimal.Parse(response.user.aum.ToString()),
+                        Tenure = response.user.relationshipAge.ToString(),
                         UserId = response.user.userId
                     };
                     var age = new Random().Next(5, 50);
@@ -251,7 +251,7 @@ namespace PropertySVC.Controllers
                     {
                         Zipcode = response.propertyList[0].zip,
                         Area = response.propertyList[0].area.ToString(),
-                        Cost = response.propertyList[0].cost,
+                        Cost = decimal.Parse(response.propertyList[0].cost),
                         AgeInYears = age,
                         contrustedIn = DateTime.Now.AddYears(-1 * age),
                         NumberOfBedrooms = response.propertyList[0].numberOfBedrooms,
@@ -284,6 +284,7 @@ namespace PropertySVC.Controllers
                                     mtgResponse = JsonConvert.DeserializeObject<MortgageQuoteResponse>(apiResponse);
                                     response.quoteFound = true;
                                     _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {JsonConvert.SerializeObject(mtgResponse)}");
+                                    response.milestones.Add("Got quote from Mortgage service");
                                 }
                                 else
                                 {
@@ -299,6 +300,7 @@ namespace PropertySVC.Controllers
                                     };
                                     response.quoteFound = false;
                                     _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... setting default dummy response {JsonConvert.SerializeObject(mtgResponse)}");
+                                    response.milestones.Add("Dummy quote generated");
                                 }
                                 response.propertyList[0].quoteDetails.downPayment = mtgResponse.DownPayment;
                                 response.propertyList[0].quoteDetails.isPreApproved = mtgResponse.IsPreApproved;
@@ -307,7 +309,6 @@ namespace PropertySVC.Controllers
                             }
                         }
                     }
-                    response.milestones.Add("Got quote from Mortgage service");
                 }
                 catch (Exception ex)
                 {
