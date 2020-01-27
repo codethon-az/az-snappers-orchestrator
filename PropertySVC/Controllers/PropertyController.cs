@@ -47,82 +47,93 @@ namespace PropertySVC.Controllers
                 var imgSearchReq = new SearchImageRequest { orig_image_url = HttpContext.Request.Query["image"] };
                 var response = new Response();
 
-
-                _logger.LogInformation("ORCHESTRATOR SERVICE: get all images from DB");
-                using (var sqlConn = new SqlConnection(DB_CONN))
+                try
                 {
-                    sqlConn.Open();
-                    var query = "SELECT Path from [dbo].[Image]";
-                    using (SqlCommand cmd = new SqlCommand(query, sqlConn))
+                    _logger.LogInformation("ORCHESTRATOR SERVICE: get all images from DB");
+                    using (var sqlConn = new SqlConnection(DB_CONN))
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        sqlConn.Open();
+                        var query = "SELECT Path from [dbo].[Image]";
+                        using (SqlCommand cmd = new SqlCommand(query, sqlConn))
                         {
-                            while (reader.Read())
+                            using (var reader = cmd.ExecuteReader())
                             {
-                                imgSearchReq.comp_image_urls.Add(reader.GetString(0));
-                            }
-                        }
-                    }
-                }
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {imgSearchReq.comp_image_urls.Count} images from DB");
-
-
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: verify if the image is a house");
-                VerifyImage verifyImg;
-                using (var httpClient = new HttpClient())
-                {
-                    _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API}/? image_url={imgSearchReq.orig_image_url}");
-                    using (var res = httpClient.GetAsync(ML_API + "/?image_url=" + imgSearchReq.orig_image_url))
-                    {
-                        var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
-                        _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API}/? image_url={imgSearchReq.orig_image_url} ---- {res.Result.StatusCode}");
-                        if (res.Result.IsSuccessStatusCode)
-                        {
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
-                            verifyImg = JsonConvert.DeserializeObject<VerifyImage>(apiResponse);
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {string.Join(';', verifyImg.tags.ToArray())}");
-                        }
-                        else
-                        {
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is not a house");
-                            verifyImg = new VerifyImage { is_house = false };
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is {string.Join(';', verifyImg.tags.ToArray())}");
-                        }
-                    }
-                    response.isHouse = verifyImg.is_house;
-                }
-
-                _logger.LogInformation("ORCHESTRATOR SERVICE: get user details from DB");
-                using (var sqlConn = new SqlConnection(DB_CONN))
-                {
-                    sqlConn.Open();
-                    var query = $"SELECT * from [dbo].[UserProfile] where username='{username}'";
-                    using (SqlCommand cmd = new SqlCommand(query, sqlConn))
-                    {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                response.user = new Core.UserProfile
+                                while (reader.Read())
                                 {
-                                    userId = reader.GetInt32(0).ToString(),
-                                    username = reader.GetString(1),
-                                    firstName = reader.GetString(3),
-                                    lastName = reader.GetString(4),
-                                    middleName = reader.GetString(5),
-                                    creditScore = reader.GetInt32(6),
-                                    aum = reader.GetInt32(7),
-                                    relationshipAge = reader.GetInt32(8),
-                                    phone = reader.GetString(9),
-                                    emailAddress = reader.GetString(10),
-                                    accountNumber = reader.GetString(11)
-                                };
+                                    imgSearchReq.comp_image_urls.Add(reader.GetString(0));
+                                }
                             }
                         }
                     }
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {imgSearchReq.comp_image_urls.Count} images from DB");
                 }
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {JsonConvert.SerializeObject(response.user)}  from DB");
+                catch(Exception ex)
+                {
+                    return $"Error getting all images from DB: {ex.Message}";
+                }
 
+                VerifyImage verifyImg;
+                try
+                {
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: verify if the image is a house");
+                    using (var httpClient = new HttpClient())
+                    {
+                        _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API}/? image_url={imgSearchReq.orig_image_url}");
+                        using (var res = httpClient.GetAsync(ML_API + "/?image_url=" + imgSearchReq.orig_image_url))
+                        {
+                            var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
+                            _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API}/? image_url={imgSearchReq.orig_image_url} ---- {res.Result.StatusCode}");
+                            if (res.Result.IsSuccessStatusCode)
+                            {
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
+                                verifyImg = JsonConvert.DeserializeObject<VerifyImage>(apiResponse);
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {string.Join(';', verifyImg.tags.ToArray())}");
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is not a house");
+                                verifyImg = new VerifyImage { is_house = false };
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Image is {string.Join(';', verifyImg.tags.ToArray())}");
+                            }
+                        }
+                        response.isHouse = verifyImg.is_house;
+                    }
+
+                    _logger.LogInformation("ORCHESTRATOR SERVICE: get user details from DB");
+                    using (var sqlConn = new SqlConnection(DB_CONN))
+                    {
+                        sqlConn.Open();
+                        var query = $"SELECT * from [dbo].[UserProfile] where username='{username}'";
+                        using (SqlCommand cmd = new SqlCommand(query, sqlConn))
+                        {
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    response.user = new Core.UserProfile
+                                    {
+                                        userId = reader.GetInt32(0).ToString(),
+                                        username = reader.GetString(1),
+                                        firstName = reader.GetString(3),
+                                        lastName = reader.GetString(4),
+                                        middleName = reader.GetString(5),
+                                        creditScore = reader.GetInt32(6),
+                                        aum = reader.GetInt32(7),
+                                        relationshipAge = reader.GetInt32(8),
+                                        phone = reader.GetString(9),
+                                        emailAddress = reader.GetString(10),
+                                        accountNumber = reader.GetString(11)
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved {JsonConvert.SerializeObject(response.user)}  from DB");
+                }
+                catch (Exception ex)
+                {
+                    return $"Error verifying image: {ex.Message}";
+                }
 
                 if (!verifyImg.is_house)
                 {
@@ -130,6 +141,7 @@ namespace PropertySVC.Controllers
                     return JsonConvert.SerializeObject(response);
                 }
 
+                try { 
                 _logger.LogInformation($"ORCHESTRATOR SERVICE: send query image and all DB images to ML model");
                 SearchImageResponse imgSearchResponse;
                 using (var httpClient = new HttpClient())
@@ -165,60 +177,74 @@ namespace PropertySVC.Controllers
                             }
                         }
                     }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return $"Error matching image from vision service: {ex.Message}";
                 }
 
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: get property from return image url");
-                using (var sqlConn = new SqlConnection(DB_CONN))
+                try
                 {
-                    sqlConn.Open();
-                    var query = $"select top 1 P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.image_url}'";
-                    using (SqlCommand cmd = new SqlCommand(query, sqlConn))
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: get property from return image url");
+                    using (var sqlConn = new SqlConnection(DB_CONN))
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        sqlConn.Open();
+                        var query = $"select top 1 P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.image_url}'";
+                        using (SqlCommand cmd = new SqlCommand(query, sqlConn))
                         {
-                            while (reader.Read())
+                            using (var reader = cmd.ExecuteReader())
                             {
-                                response.propertyList.Add(new Property
+                                while (reader.Read())
                                 {
-                                    imageUrl = reader.GetString(16),
-                                    address = $"{reader.GetString(1)}, {reader.GetString(3)}, {reader.GetString(4)} {reader.GetString(5)}",
-                                    area = reader.GetDouble(14).ToString(),
-                                    numberOfBedrooms = reader.GetInt32(7),
-                                    numberOfBathrooms = reader.GetInt32(8),
-                                    cost = reader.GetDouble(13).ToString(),
-                                    status = reader.GetString(12),
-                                    tax = reader.GetDouble(15).ToString(),
-                                    zip = reader.GetString(5),
-                                    propertyId = reader.GetInt32(0).ToString()
-                                });
+                                    response.propertyList.Add(new Property
+                                    {
+                                        imageUrl = reader.GetString(16),
+                                        address = $"{reader.GetString(1)}, {reader.GetString(3)}, {reader.GetString(4)} {reader.GetString(5)}",
+                                        area = reader.GetDouble(14).ToString(),
+                                        numberOfBedrooms = reader.GetInt32(7),
+                                        numberOfBathrooms = reader.GetInt32(8),
+                                        cost = reader.GetDouble(13).ToString(),
+                                        status = reader.GetString(12),
+                                        tax = reader.GetDouble(15).ToString(),
+                                        zip = reader.GetString(5),
+                                        propertyId = reader.GetInt32(0).ToString()
+                                    });
+                                }
                             }
                         }
                     }
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved property details from DB --- {JsonConvert.SerializeObject(response.propertyList)}");
+
+                    var mtgReq = new MortgageQuoteRequest();
+                    mtgReq.AccountDetails = new AccountDetails
+                    {
+                        AccountNumber = response.user.accountNumber,
+                        AUM = response.user.aum.ToString(),
+                        Tenure = response.user.relationshipAge,
+                        UserId = response.user.userId
+                    };
+                    var age = new Random().Next(5, 50);
+                    mtgReq.PropertyDetails = new PropertyDetails
+                    {
+                        Zipcode = response.propertyList[0].zip,
+                        Area = response.propertyList[0].area.ToString(),
+                        Cost = response.propertyList[0].cost,
+                        AgeInYears = age,
+                        contrustedIn = DateTime.Now.AddYears(-1 * age),
+                        NumberOfBedrooms = response.propertyList[0].numberOfBedrooms,
+                        PropertyId = response.propertyList[0].propertyId
+                    };
+
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: send user and property details to mortgage service --- {JsonConvert.SerializeObject(mtgReq)}");
                 }
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: retrieved property details from DB --- {JsonConvert.SerializeObject(response.propertyList)}");
-
-                var mtgReq = new MortgageQuoteRequest();
-                mtgReq.AccountDetails = new AccountDetails
+                catch (Exception ex)
                 {
-                    AccountNumber = response.user.accountNumber,
-                    AUM = response.user.aum.ToString(),
-                    Tenure = response.user.relationshipAge,
-                    UserId = response.user.userId
-                };
-                var age = new Random().Next(5, 50);
-                mtgReq.PropertyDetails = new PropertyDetails
-                {
-                    Zipcode = response.propertyList[0].zip,
-                    Area = response.propertyList[0].area.ToString(),
-                    Cost = response.propertyList[0].cost,
-                    AgeInYears = age,
-                    contrustedIn = DateTime.Now.AddYears(-1 * age),
-                    NumberOfBedrooms = response.propertyList[0].numberOfBedrooms,
-                    PropertyId = response.propertyList[0].propertyId
-                };
+                    return $"Error getting selected property from DB: {ex.Message}";
+                }
 
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: send user and property details to mortgage service --- {JsonConvert.SerializeObject(mtgReq)}");
 
+                try { 
                 MortgageQuoteResponse mtgResponse;
                 using (var httpClient = new HttpClient())
                 {
@@ -257,6 +283,11 @@ namespace PropertySVC.Controllers
                             response.propertyList[0].quoteDetails.rateOfInterest = mtgResponse.RateofInterest;
                         }
                     }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return $"Error getting mortgage quote: {ex.Message}";
                 }
 
                 _logger.LogInformation($"ORCHESTRATOR SERVICE: send user, property and mortgage details back to UI {JsonConvert.SerializeObject(response)}");
