@@ -7,7 +7,7 @@ namespace PropertySVC.Model
 {
     public class SearchImageRequest
     {
-        public string orig_image_url { get; set; }
+        public string org_image_url { get; set; }
         public List<string> comp_image_urls { get; set; }
 
         public SearchImageRequest()
@@ -17,7 +17,7 @@ namespace PropertySVC.Model
     }
     public class SearchImageResponse
     {
-        public string image_url { get; set; }
+        public string comp_image_url { get; set; }
         public string message { get; set; }
     }
 }

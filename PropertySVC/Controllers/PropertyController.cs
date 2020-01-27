@@ -44,7 +44,7 @@ namespace PropertySVC.Controllers
             try
             {
                 _logger.LogInformation($"Getting property details for {username} for image url {HttpContext.Request.Query["image"]}");
-                var imgSearchReq = new SearchImageRequest { orig_image_url = HttpContext.Request.Query["image"] };
+                var imgSearchReq = new SearchImageRequest { org_image_url = HttpContext.Request.Query["image"] };
                 var response = new Response();
 
                 try
@@ -78,11 +78,11 @@ namespace PropertySVC.Controllers
                     _logger.LogInformation($"ORCHESTRATOR SERVICE: verify if the image is a house");
                     using (var httpClient = new HttpClient())
                     {
-                        _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API}/? image_url={imgSearchReq.orig_image_url}");
-                        using (var res = httpClient.GetAsync(ML_API + "/?image_url=" + imgSearchReq.orig_image_url))
+                        _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API}/? image_url={imgSearchReq.org_image_url}");
+                        using (var res = httpClient.GetAsync(ML_API + "/?image_url=" + imgSearchReq.org_image_url))
                         {
                             var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API}/? image_url={imgSearchReq.orig_image_url} ---- {res.Result.StatusCode}");
+                            _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API}/? image_url={imgSearchReq.org_image_url} ---- {res.Result.StatusCode}");
                             if (res.Result.IsSuccessStatusCode)
                             {
                                 _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
@@ -142,41 +142,44 @@ namespace PropertySVC.Controllers
                 }
                 SearchImageResponse imgSearchResponse;
 
-                try { 
-                _logger.LogInformation($"ORCHESTRATOR SERVICE: send query image and all DB images to ML model");
-                using (var httpClient = new HttpClient())
+                try
                 {
-                    var httpContent = new StringContent(JsonConvert.SerializeObject(imgSearchReq), Encoding.UTF8, "application/json");
+                    _logger.LogInformation($"ORCHESTRATOR SERVICE: send query image and all DB images to ML model");
+                    using (var httpClient = new HttpClient())
                     {
-                        _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API} using {httpContent}");
-                        using (var res = httpClient.PostAsync(ML_API, httpContent))
+                        var httpContent = new StringContent(JsonConvert.SerializeObject(imgSearchReq), Encoding.UTF8, "application/json");
                         {
-                            var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
-                            _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API} for image matching ---- {res.Result.StatusCode}");
-                            if (res.Result.IsSuccessStatusCode)
+                            _logger.LogInformation($"ORCHESTRATOR SERVICE: calling {ML_API} using {httpContent}");
+                            using (var res = httpClient.PostAsync(ML_API, httpContent))
                             {
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
-                                imgSearchResponse = JsonConvert.DeserializeObject<SearchImageResponse>(apiResponse);
-                                response.propertyFound = true;
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {imgSearchResponse.image_url} and {imgSearchResponse.message}");
-                            }
-                            else
-                            {
-                                response.propertyFound = false;
-                                var p = new Random().Next(0, 65);
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... picking a random image {p}");
-                                if (p == 0)
+                                var apiResponse = res.Result.Content.ReadAsStringAsync().Result;
+                                _logger.LogInformation($"ORCHESTRATOR SERVICE: received response from {ML_API} for image matching ---- {res.Result.StatusCode}");
+                                if (res.Result.IsSuccessStatusCode)
                                 {
-                                    imgSearchResponse = new SearchImageResponse { image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserializing response {apiResponse}");
+                                    imgSearchResponse = JsonConvert.DeserializeObject<SearchImageResponse>(apiResponse);
+                                    response.propertyFound = true;
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Deserialized response {imgSearchResponse.comp_image_url} and {imgSearchResponse.message}");
                                 }
                                 else
                                 {
-                                    imgSearchResponse = new SearchImageResponse { image_url = imgSearchReq.comp_image_urls[p - 1], message = "Randomly chosen house image" };
+                                    response.propertyFound = false;
+                                    imgSearchResponse = new SearchImageResponse { comp_image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
+                                    _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... returning property not found image");
+                                    //    var p = new Random().Next(0, 65);
+                                    //_logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... picking a random image {p}");
+                                    //if (p == 0)
+                                    //{
+                                    //    imgSearchResponse = new SearchImageResponse { comp_image_url = "https://azsnappersblob.blob.core.windows.net/images/HouseNotFound.PNG", message = "Property not found" };
+                                    //}
+                                    //else
+                                    //{
+                                    //    imgSearchResponse = new SearchImageResponse { comp_image_url = imgSearchReq.comp_image_urls[p - 1], message = "Randomly chosen house image" };
+                                    //}
+                                    //_logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... picked a random image {JsonConvert.SerializeObject(imgSearchResponse)}");
                                 }
-                                _logger.LogInformation($"ORCHESTRATOR SERVICE: Image not matched... picked a random image {JsonConvert.SerializeObject(imgSearchResponse)}");
                             }
                         }
-                    }
                     }
                 }
                 catch (Exception ex)
@@ -191,7 +194,7 @@ namespace PropertySVC.Controllers
                     using (var sqlConn = new SqlConnection(DB_CONN))
                     {
                         sqlConn.Open();
-                        var query = $"select top 1 P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.image_url}'";
+                        var query = $"select top 1 P.*, I.Path from [dbo].[image] I, [dbo].[Property] P where I.PropertyId = P.PropertyId and I.Path = '{imgSearchResponse.comp_image_url}'";
                         using (SqlCommand cmd = new SqlCommand(query, sqlConn))
                         {
                             using (var reader = cmd.ExecuteReader())
